@@ -10,31 +10,35 @@ from torch_geometric.datasets import Planetoid
 
 data_path = './data/Planetoid'
 dataset = Planetoid(root=data_path, name='Cora')
+
+#Get overview of dataset
 print(f'Dataset: {dataset}:')
 print(f'Number of graphs: {len(dataset)}')
 print(f'Number of features: {dataset.num_features}')
 print(f'Number of classes: {dataset.num_classes}')
 
+#Uncompress PyTorch Geomtric's representation of Adjacency Matrix
 cora_adj_matrix = torch_geometric.utils.to_torch_coo_tensor(dataset.edge_index).to_dense()
 cora_adj_matrix += torch.eye(dataset[0].num_nodes, dataset[0].num_nodes)
 cora_adj_matrix = cora_adj_matrix.float()
-#Check to ensure mtx is symmetric
-print(torch.all(cora_adj_matrix.transpose(0, 1) == cora_adj_matrix))
 
+print(torch.all(cora_adj_matrix.transpose(0, 1) == cora_adj_matrix)) #Check to ensure adjacency matrix is symmetric
+
+#Get more information about dataset
 print(f" The number of training instances is {torch.sum(dataset[0].train_mask)}")
 print(f" The number of validation instances is {torch.sum(dataset[0].val_mask)}")
 print(f" The number of test instances id {torch.sum(dataset[0].test_mask)}")
 
-
+#Extract Features and perform row-wise normalization
 total_data = dataset[0].x.float()
-#Row-wise normalization
 total_data = total_data/torch.linalg.norm(total_data, axis = 1, keepdims = True)
 
-
+#Create Train, Val, and Test Masks as in Transductive setting
 train_mask = dataset[0].train_mask
 val_mask = dataset[0].val_mask
 test_mask = dataset[0].test_mask
 labels = dataset[0].y
+
 num_classes = len(torch.bincount(labels))
 
 
@@ -54,21 +58,28 @@ def masked_accuracy(preds, labels, mask):
     return torch.mean(correct_predictions)
 
 def benchmark(model):
-    # lr = 5e-3
+    "Train model and return test performance"
     lr = 0.01
-    epochs = 25
+    epochs = 1000
     optimizer = optim.Adam(params = model.parameters(), lr = lr, weight_decay = 0.0005)
+
     best_val_loss = 0
-    early_stop_counter = 0
+    early_stop_counter = 0 
+    patience = 100
+    #best_val_loss, early_stop_counter, patience are used for early stopping purposes
+
     for epoch in range(0, epochs):
         model.train()
+        #Forward pass
         preds = model(total_data, cora_adj_matrix)
         loss = masked_cross_entropy(preds, labels, train_mask)
+        #Backward pass
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         with torch.no_grad():
+            #Compute metrics
             model.eval()
             preds = model(total_data, cora_adj_matrix)
 
@@ -78,9 +89,9 @@ def benchmark(model):
 
             print(f"Epoch: {epoch}, Training Loss: {loss}, Training Accuracy: {train_acc}, Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
             
+            #Early stopping algorithm
             if epoch == 0:
                 best_val_loss = val_loss
-            
             
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -88,7 +99,7 @@ def benchmark(model):
             else:
                 early_stop_counter +=1
 
-        if early_stop_counter == 100:
+        if early_stop_counter == patience:
             break
 
     return masked_accuracy(preds, labels, test_mask)

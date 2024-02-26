@@ -1,3 +1,4 @@
+""" Contains re-implementations of Graph Convolutional and Graph Attention Architectures"""
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -12,21 +13,18 @@ class GraphConvModel(nn.Module):
         super().__init__()
         self.l1 = GraphConvLayer(node_dimension, hidden_dims)
         self.l2 = GraphConvLayer(hidden_dims, num_classes)
-        # self.dp1 = nn.Dropout(0.5)
-        # self.dp2 = nn.Dropout(0.5)
     
     def forward(self, input, adj_matrix):
-        #Input: NxF, where N = # of number of Nodes and F = # of features (also known as node_dimensions)
-        #Adj_matrix: NxN, where elements of 1 denote the presence of edges between nodes
-        # x = self.dp1(input)
+        #Input Graph: N x F, where N = # of number of Nodes and F = # of features 
+        #Adjacency Matrix: N x N, where elements of 1 with matrix denote the presence of edges between nodes
+        
         x = F.dropout(input, p = 0.5, training = self.training)
         x = self.l1(x, adj_matrix)
-        # x = N x hidden_dims
+        # x is now: N x hidden_dims
         x = F.relu(x)
-        # x = self.dp2(x)
         x = F.dropout(x, p = 0.5, training = self.training)
         output = self.l2(x, adj_matrix)
-        # output = N x num_classes
+        #Output: N x num_classes
         return output
     
 
@@ -36,18 +34,18 @@ class GraphAttentionModel(nn.Module):
         super().__init__()
         self.l1 = GraphAttentionLayer(node_dimension, hidden_dims, num_heads, True)
         self.l2 = GraphAttentionLayer(hidden_dims*num_heads, num_classes, 1, False)
-        # self.dp1 = nn.Dropout(0.6)
-        # self.dp2 = nn.Dropout(0.6)
 
     def forward(self, input, adj_matrix):
-        # x = self.dp1(input)
+        #Input Graph: N x F, where N = # of number of Nodes and F = # of features 
+        #Adjacency Matrix: N x N, where elements of 1 with matrix denote the presence of edges between nodes
         x = F.dropout(input, p = 0.6, training=self.training)
         x = self.l1(x, adj_matrix)
+        # x is now: N x hidden_dims*num_heads
         x = F.elu(x)
-        # x = self.dp2(x)
         x - F.dropout(x, p = 0.6, training = self.training)
-        x = self.l2(x, adj_matrix)
-        return x
+        output = self.l2(x, adj_matrix)
+        #Output: N x num_classes
+        return output
     
 class GraphAttentionModel_PyTorch_Geometric(nn.Module):
     """ GAT Architecture with PyTorch Geometric Layer"""
@@ -55,21 +53,23 @@ class GraphAttentionModel_PyTorch_Geometric(nn.Module):
         super().__init__()
         self.l1 = DenseGATConv(node_dimension, hidden_dims, num_heads, True, dropout = 0.6)
         self.l2 = DenseGATConv(hidden_dims*num_heads, num_classes, 1, False, dropout = 0.6)
-        # self.dp1 = nn.Dropout(0.6)
-        # self.dp2 = nn.Dropout(0.6)
+        #Note this is using PyTorch Geometric's DenseGATConv Layer
 
     def forward(self, input, adj_matrix):
-        # x = self.dp1(input)
+        #Input Graph: N x F, where N = # of number of Nodes and F = # of features 
+        #Adjacency Matrix: N x N, where elements of 1 with matrix denote the presence of edges between nodes
         x = F.dropout(input, p = 0.6, training=self.training)
         x = self.l1(x, adj_matrix)
+        # x is now: N x hidden_dims*num_heads
         x = F.elu(x)
-        # x = self.dp2(x)
         x - F.dropout(x, p = 0.6, training = self.training)
-        x = self.l2(x, adj_matrix)
-        return x
+        output = self.l2(x, adj_matrix)
+        #Output: N x num_classes
+        return output
 
 
 class NodeClassificationModel(nn.Module):
+    """Reusable Wrapper for Node Classification Architectures"""
     def __init__(self, node_dimension, num_classes, hidden_dims, model_choice, num_heads = None):
         super().__init__()
         self.model_choice = model_choice
