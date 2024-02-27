@@ -6,7 +6,7 @@ This repository includes code which aims to reimplement the Graph Convolutional 
 
 To evaluate the implementations, GCNs and GATs were trained and tested on the CORA citation network dataset for the purpose of node classification. Additionally, a PyTorch Geometric variant of a GAT were compoared against from the from-scratch GNNs.
 
-To run the code (assuming dependencies are installed: see imported packages in benchmark.py):
+To run the code (see imported packages in benchmark.py for relevant dependencies):
 
 ```
 $ python benchmark.py 
