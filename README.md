@@ -14,7 +14,7 @@ $ python benchmark.py
 Average test results over 5 runs:
 
 ```
-Graph Convolutional Neural Network: 0.808
-Graph Attention Neural Network: 0.815
-PyG Graph Attention Neural Network: 0.822
+GCN: 0.808
+GAT: 0.815
+PyG GAT: 0.822
 ```
