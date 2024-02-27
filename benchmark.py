@@ -1,5 +1,6 @@
 from models import *
 
+import pandas as pd
 import torch
 from torch import nn
 from torch import optim
@@ -59,7 +60,7 @@ def masked_accuracy(preds, labels, mask):
 
 def benchmark(model):
     "Train model and return test performance"
-    lr = 0.01
+    lr = 5e-3
     epochs = 1000
     optimizer = optim.Adam(params = model.parameters(), lr = lr, weight_decay = 0.0005)
 
@@ -104,19 +105,25 @@ def benchmark(model):
 
     return masked_accuracy(preds, labels, test_mask)
 
-gcn = NodeClassificationModel(1433, num_classes, 16, "conv")
-gcn_results =benchmark(gcn)
-print(f"The test set performance using the Graph Convolutional NN is {gcn_results}")
-
-gat = NodeClassificationModel(1433, num_classes, 8, "attn", 8)            
-gat_results = benchmark(gat)    
-print(f"The test set performance using the Graph Attention NN is {gat_results}")
-
-gat_geometric = NodeClassificationModel(1433, num_classes, 8, "geometric_attn", 8)
-gat_geometric_results = benchmark(gat_geometric)
-print(f"The test set performance using Pytorch Geometric Graph Attention NN is {gat_geometric_results}")
+performances = []
+for run in range(0, 2):
+    gcn = NodeClassificationModel(1433, num_classes, 16, "conv")
+    gcn_results = benchmark(gcn)
+    performances.append((gcn_results, "conv"))
 
 
+    gat = NodeClassificationModel(1433, num_classes, 8, "attn", 8)            
+    gat_results = benchmark(gat)   
+    performances.append((gat_results, "attn"))
+ 
+
+    gat_geometric = NodeClassificationModel(1433, num_classes, 8, "geometric_attn", 8)
+    gat_geometric_results = benchmark(gat_geometric)
+    performances.append((gat_geometric_results, "geometric_attn"))
+
+
+performances = pd.DataFrame(performances)
+print(performances.groupby(1).mean())
 
 
 
