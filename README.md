@@ -15,6 +15,6 @@ Average test results over 5 runs:
 
 ```
 GCN: 0.808
-GAT: 0.815
-PyG GAT: 0.822
+GAT: 0.822
+PyG GAT: 0.815
 ```
