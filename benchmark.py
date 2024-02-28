@@ -124,6 +124,8 @@ for run in range(0, 2):
 
 performances = pd.DataFrame(performances)
 print(performances.groupby(1).mean())
+print(performances.groupby(1).std())
+
 
 
 
