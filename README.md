@@ -14,7 +14,7 @@ $ python benchmark.py
 Average test results over 5 runs:
 
 ```
-GCN: 0.808 +- 0.002121
+GCN: 0.8145 +- 0.002121
 GAT: 0.815 +- 0.004243
-PyG GAT: 0.815 +- 0.014142
+PyG GAT: 0.811 +- 0.014142
 ```
