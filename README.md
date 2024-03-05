@@ -11,7 +11,7 @@ To run the code (see imported packages in benchmark.py for relevant dependencies
 ```
 $ python benchmark.py 
 ```
-Average test results over 5 runs:
+Average test results over 5 training runs:
 
 ```
 GCN: 0.8145 +- 0.002121
